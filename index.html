@@ -31,7 +31,7 @@
     <hr>
     <calc-num v-model.number="params.returnOnInvestment" type="percent">Average Returns</calc-num>
     <calc-num v-model.number="params.rateOfInflation" type="percent">Annual Inflation</calc-num>
-
+    <hr>
   </div>
 
   <div id="results">
@@ -50,16 +50,16 @@
           <tr>
             <th scope="col">Age</th>
             <th scope="col">Savings</th>
-            <th scope="col">New Savings</th>
-            <th scope="col">Total</th>
+            <th scope="col">Earned Interest</th>
+            <th scope="col">Contribution</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="year in calculations">
-            <th scope="row">{{year.age}}</th>
-            <td>{{year.worth}}</td>
-            <td>{{year.saved}}</td>
-            <td>{{year.total}}</td>
+          <tr v-for="yr in calculations">
+            <th scope="row">{{yr.age}}</th>
+            <td>{{printDollar(yr.savings)}}</td>
+            <td>{{printDollar(yr.interest)}}</td>
+            <td>{{printDollar(yr.contribution)}}</td>
             <td></td>
           </tr>
           </tbody>
@@ -96,6 +96,8 @@ const App = Vue.createApp({
         rateOfInflation: 4.0,
       },
 
+      dollarFmt: null,
+      printDollar: null,
       calculations: []
     }
   },
@@ -109,40 +111,50 @@ const App = Vue.createApp({
   },
  
   created() {
-    this.updateCalculations()
-  },
 
-  methods: {
-      
-    updateCalculations() {
-
-      const dollarFmt =
+    this.dollarFmt =
         new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
         maximumFractionDigits: 0
         });
 
-      let newResults = []
-      const params = this.params
-      let worth = params.currentWorth
-      let interestRate = (params.returnOnInvestment - params.rateOfInflation) / 100
-      let savings = 0.0
+    this.printDollar = this.dollarFmt.format
 
+    this.updateCalculations()
+  },
+
+  methods: {
+
+    updateCalculations() {
+
+      const params = this.params
+      let interestRate = (params.returnOnInvestment - params.rateOfInflation) / 100
       params.costOfLiving = Math.floor(params.currentIncome - params.currentSavings)
       params.retireWorth = Math.floor(params.costOfLiving / interestRate)
+
+      let savings = params.currentWorth
     
+      let newResults = []
 
-      for(let age = params.currentAge; age <= params.retireAge; age++) {
-        savings += params.currentSavings
+      for(let age = params.currentAge; age < 100; age++) {
+        
+        const interest = savings * interestRate
+
+        let contribution = 0
+        if (age < params.retireAge) 
+          contribution = params.currentSavings;
+        else
+          contribution = -(params.costOfLiving);
+        
+
         newResults.push(
-          { age: age, 
-            worth: dollarFmt.format(worth), 
-            saved: dollarFmt.format(savings),
-            total: dollarFmt.format(worth + savings)});
+          { age, 
+            savings, 
+            interest,
+            contribution});
 
-        worth = Math.floor(worth * (1 + interestRate));
-        savings = Math.floor(savings * (1 + interestRate));
+        savings += interest + contribution
       }
       
       this.calculations = newResults    
