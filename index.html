@@ -47,7 +47,7 @@
   <div class="tab-content " id="myTabContent">
 
     <div class="tab-pane fade show active" id="graph-tab-pane" role="tabpanel" aria-labelledby="graph-tab" tabindex="0">
-      <canvas id="myChart" width="400" height="300"></canvas>
+      <canvas id="myCanvas" ref="myCanvas" width="400" height="200"></canvas>'
     </div>
 
     <div class="tab-pane fade" id="chart-tab-pane" role="tabpanel" aria-labelledby="table-tab" tabindex="0">
@@ -85,7 +85,7 @@ const App = Vue.createApp({
       params: {
         currentIncome: 71000,
         currentSavings: 16000,
-        currentWorth: 100000,
+        currentWorth: 65000,
         currentAge: 25,
         retireAge: 55,
 
@@ -101,8 +101,22 @@ const App = Vue.createApp({
       dollarFmt: null,
       printDollar: null,
       calculations: [],
-      
-      dataChart: null
+
+      chart: null,
+      chartData: {
+        labels: [0,1,2],
+        datasets: [{
+          label: 'Total Savings',
+          data: [4,5,6],
+          fill: true,
+          borderColor: 'rgb(75, 192, 192)',
+          borderWidth: 3,
+          tension: 0.2,
+        }]
+      },
+      chartOptions: {
+
+      } 
     }
   },
 
@@ -110,6 +124,7 @@ const App = Vue.createApp({
     params: {
       handler(newParams, oldParams) {
       this.updateCalculations();
+      this.redrawChart();
       },
       deep: true
     }
@@ -128,30 +143,21 @@ const App = Vue.createApp({
     this.printDollar = function (num) {
       return (num === 0) ? '-' : this.dollarFmt.format(num)
     }
-    
-    const chartConfig = {
-        type: 'line',
-        data: {
-        labels: [0],
-        datasets: [{
-          label: 'Total Savings',
-          data: [0],
-          fill: true,
-          borderColor: 'rgb(75, 192, 192)',
-          borderWidth: 3,
-          tension: 0.2,
-          }]
-        }
-      }
 
-    const canvas = document.getElementById('myChart')
-    const dataChart = new Chart(canvas, chartConfig)
-    this.params.dataChart = dataChart
-    
     this.updateCalculations()
   },
 
+  mounted() {
+    const ctx = this.$refs.myCanvas.getContext('2d')
+      this.chart = new Chart(ctx, {
+        type: 'line',
+        data: this.chartData,
+        options: this.chartOptions
+      })
+  },
+
   methods: {
+
     tableColor(yr) {
       if (yr.stage === 2)
         return 'table-primary'
@@ -189,8 +195,9 @@ const App = Vue.createApp({
           if (canCoastToRetire(age, savings)) {
             params.coastAge = age
             stage = 2
+          } else {
+            contribution = params.currentSavings
           }
-          contribution = params.currentSavings
         }
         
         if (age >= params.retireAge) {
@@ -210,14 +217,10 @@ const App = Vue.createApp({
       
       //const chartLabels = newResults.filter((e, i) => i % 3 === 3 - 1).map(x => x.age)
       //const chartData = newResults.filter((e, i) => i % 3 === 3 - 1).map(x => Math.floor(x.savings))
-      const chartLabels = newResults.map(x => x.age)
-      const chartData = newResults.map(x => Math.floor(x.savings))
+      this.chartData.labels = newResults.map(x => x.age)
+      this.chartData.datasets[0].data = newResults.map(x => Math.floor(x.savings))
 
       this.calculations = newResults    
-      
-      params.dataChart.labels = chartLabels
-      params.dataChart.data.datasets[0].data = chartData
-      params.dataChart.update()
     } 
   },
 })
