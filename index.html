@@ -81,14 +81,79 @@
 // Dies in a stack overflow of recursion in .toRaw() Vue function
 class ChartJs {
   static _chart = null
-  static Init(elemId, data, options) {
+
+// .first-color  { background: #00204a; }	rgba(0,32,74,0.5)
+// .second-color { background: #005792; } rgba(0,87,146,0.5)
+// .third-color  { background: #00bbf0; } rgba(0,187,240,0.5)
+// .fourth-color { background: #fdb44b; }
+
+  static data = {
+    labels: [0,1000000],
+    datasets: [{
+      label: 'Working',
+      data: [],
+      fill: true,
+      borderColor: 'rgba(0,32,74,1)',
+      backgroundColor: 'rgba(0,32,74,0.5)',
+      pointRadius: 2,
+      pointHoverRadius: 5,
+      segment: {
+        borderColor: ctx => {
+          switch (ctx.p1.raw.stage) {
+            case 1: return 'rgba(0,32,74,1)'
+            case 2: return 'rgba(0,87,146,1)'
+            default : return 'rgba(0,187,240,1)'
+          }
+        },
+        backgroundColor: ctx => {
+          switch (ctx.p1.raw.stage) {
+            case 1: return 'rgba(0,32,74,0.5)'
+            case 2: return 'rgba(0,87,146,0.5)'
+            default : return 'rgba(0,187,240,0.5)'
+          }
+        }
+      }
+      },
+      {
+      label: 'Coasting',
+      borderColor: 'rgba(0,87,146,1)',
+      backgroundColor: 'rgba(0,87,146,0.5)'
+      },
+      {
+      label: 'Retired',
+      borderColor: 'rgba(0,187,240,1)',
+      backgroundColor: 'rgba(0,187,240,0.5)'
+      }
+    ]
+  };
+
+  static options = {
+    title: {
+      display: true,
+      text: 'Total Savings'
+    },
+    elements: {
+      point: {
+        radius: 1
+      }
+    },
+    animation: {
+        duration: 600,
+    },
+    parsing: {
+      yAxisKey: 'savings',
+      xAxisKey: 'age'
+    }
+  };
+
+  static Init(elemId) {
 
     const ctx = document.getElementById(elemId).getContext('2d')
 
     this._chart = new Chart(ctx, {
       type: 'line',
-      data: data,
-      options: options
+      data: this.data,
+      options: this.options
       })
   }
 
@@ -97,7 +162,7 @@ class ChartJs {
       this._chart.data.labels = labels
       
       // mutiple data arguments
-      console.assert(this._chart.data.datasets.length === arguments.length - 1)
+      //console.assert(this._chart.data.datasets.length === arguments.length - 1)
       
       for(let i = 1; i < arguments.length; i++) {
         this._chart.data.datasets[i-1].data = arguments[i]
@@ -131,65 +196,13 @@ const App = Vue.createApp({
       dollarFmt: null,
       printDollar: null,
       
-      calculations: [],
-
-// .first-color  { background: #00204a; }	rgba(0,32,74,0.5)
-// .second-color { background: #005792; } rgba(0,87,146,0.5)
-// .third-color  { background: #00bbf0; } rgba(0,187,240,0.5)
-// .fourth-color { background: #fdb44b; }
-
-      chartData: {
-        labels: [0,1000000],
-        datasets: [{
-          label: 'Working',
-          data: [],
-          fill: true,
-          borderColor: 'rgba(0,87,146,1)',
-          backgroundColor: 'rgba(0,32,74,0.5)',
-          pointRadius: 2,
-          pointHoverRadius: 5
-          },
-          {
-          label: 'Coasting',
-          data: [],
-          fill: true,
-          borderColor: 'rgba(0,87,146,1)',
-          backgroundColor: 'rgba(0,87,146,0.5)',
-          pointRadius: 2,
-          pointHoverRadius: 5
-          },
-          {
-          label: 'Retired',
-          data: [],
-          fill: true,
-          borderColor: 'rgba(0,187,240,1)',
-          backgroundColor: 'rgba(0,187,240,0.5)',
-          pointRadius: 2,
-          pointHoverRadius: 5
-          }
-        ]
-      },
-
-      chartOptions: {
-        title: {
-          display: true,
-          text: 'Total Savings'
-        },
-        elements: {
-          point: {
-            radius: 1
-          }
-        },
-        animation: {
-            duration: 600,
-        },
-      }
+      calculations: []
     }
   },
 
   mounted() {
     this.updateCalculations()
-    ChartJs.Init('lineChart', this.chartData, this.chartOptions)
+    ChartJs.Init('lineChart')
   },
 
   watch: {
@@ -205,18 +218,7 @@ const App = Vue.createApp({
       const labels = newCalc.filter((e, i) => i % 2 === 1).map(x => x.age)
       const evens = newCalc.filter((e, i) => i % 2 === 1).map(x => x)
 
-      const data0 = evens.map(x => (x.stage === 1) ? Math.floor(x.savings) : undefined)
-      const data1 = evens.map(x => (x.stage === 2) ? Math.floor(x.savings) : undefined)
-      const data2 = evens.map(x => (x.stage === 3) ? Math.floor(x.savings) : undefined)
-      
-      // some funny business to overlap the lines
-      let i = 0
-      for(i; i < evens.length && evens[i].stage === 1; i++);
-      data0[i] = Math.floor(evens[i].savings);
-      for(i; i < evens.length && evens[i].stage === 2; i++);
-      data1[i] = Math.floor(evens[i].savings);
-      
-      ChartJs.Update(labels, data0, data1, data2)
+      ChartJs.Update(labels, evens)
     }
   },
  
