@@ -47,7 +47,7 @@
   <div class="tab-content " id="myTabContent">
 
     <div class="tab-pane fade show active" id="chart-tab-pane" role="tabpanel" aria-labelledby="chart-tab" tabindex="0">
-      <canvas id="lineChart"></canvas>
+      <canvas id="lineChart" width="400" height="300"></canvas>
     </div>
 
     <div class="tab-pane fade" id="table-tab-pane" role="tabpanel" aria-labelledby="table-tab" tabindex="0">
@@ -78,6 +78,7 @@
 <script>
 
 // This all needs to live outside the Vue app for some reason
+// Dies in a stack overflow of recursion in .toRaw() Vue function
 class ChartJs {
   static _chart = null
   static Init(elemId, data, options) {
@@ -94,7 +95,14 @@ class ChartJs {
   static Update(labels, data) {
     if (this._chart) {
       this._chart.data.labels = labels
-      this._chart.data.datasets[0].data = data
+      
+      // mutiple data arguments
+      console.assert(this._chart.data.datasets.length === arguments.length - 1)
+      
+      for(let i = 1; i < arguments.length; i++) {
+        this._chart.data.datasets[i-1].data = arguments[i]
+      }
+
       this._chart.update()
     }
   }
@@ -124,62 +132,91 @@ const App = Vue.createApp({
       printDollar: null,
       
       calculations: [],
-// .first-color { background: #00204a; }	
-// .second-color { background: #005792; }
-// .third-color { background: #00bbf0; }
-//.fourth-color { background: #fdb44b; }
+
+// .first-color  { background: #00204a; }	rgba(0,32,74,0.5)
+// .second-color { background: #005792; } rgba(0,87,146,0.5)
+// .third-color  { background: #00bbf0; } rgba(0,187,240,0.5)
+// .fourth-color { background: #fdb44b; }
+
       chartData: {
         labels: [0,1000000],
         datasets: [{
           label: 'Working',
           data: [],
           fill: true,
-          borderColor: '#00204a',
-          pointRadius: 0
+          borderColor: 'rgba(0,87,146,1)',
+          backgroundColor: 'rgba(0,32,74,0.5)',
+          pointRadius: 2,
+          pointHoverRadius: 5
           },
           {
           label: 'Coasting',
           data: [],
           fill: true,
-          borderColor: '#005792',
+          borderColor: 'rgba(0,87,146,1)',
+          backgroundColor: 'rgba(0,87,146,0.5)',
+          pointRadius: 2,
+          pointHoverRadius: 5
           },
           {
           label: 'Retired',
           data: [],
           fill: true,
-          borderColor: '#00bbf0',
+          borderColor: 'rgba(0,187,240,1)',
+          backgroundColor: 'rgba(0,187,240,0.5)',
+          pointRadius: 2,
+          pointHoverRadius: 5
           }
         ]
       },
 
       chartOptions: {
-        title : {
+        title: {
           display: true,
           text: 'Total Savings'
-        }
-      }
-        
+        },
+        elements: {
+          point: {
+            radius: 1
+          }
+        },
+        animation: {
+            duration: 600,
+        },
       }
     }
+  },
+
+  mounted() {
+    this.updateCalculations()
+    ChartJs.Init('lineChart', this.chartData, this.chartOptions)
   },
 
   watch: {
     params: {
       handler(newParams, oldParams) {
-        console.log(JSON.stringify(newParams))
         this.updateCalculations()
       },
       deep: true,
-      flush: 'post'
     },
 
     calculations(newCalc, oldCalc) {
-      //const labels = newResults.filter((e, i) => i % 3 === 3 - 1).map(x => x.age)
-      //const data = newResults.filter((e, i) => i % 3 === 3 - 1).map(x => Math.floor(x.savings))
-      const labels = newCalc.map(x => x.age)
-      const data = newCalc.map(x => Math.floor(x.savings))
 
-      ChartJs.Update(labels, data)
+      const labels = newCalc.filter((e, i) => i % 2 === 1).map(x => x.age)
+      const evens = newCalc.filter((e, i) => i % 2 === 1).map(x => x)
+
+      const data0 = evens.map(x => (x.stage === 1) ? Math.floor(x.savings) : undefined)
+      const data1 = evens.map(x => (x.stage === 2) ? Math.floor(x.savings) : undefined)
+      const data2 = evens.map(x => (x.stage === 3) ? Math.floor(x.savings) : undefined)
+      
+      // some funny business to overlap the lines
+      let i = 0
+      for(i; i < evens.length && evens[i].stage === 1; i++);
+      data0[i] = Math.floor(evens[i].savings);
+      for(i; i < evens.length && evens[i].stage === 2; i++);
+      data1[i] = Math.floor(evens[i].savings);
+      
+      ChartJs.Update(labels, data0, data1, data2)
     }
   },
  
@@ -202,12 +239,6 @@ const App = Vue.createApp({
       return this.dollarFmt.format(num)
     }
 
-  },
-
-  mounted() {
-
-    this.updateCalculations()
-    ChartJs.Init('lineChart', this.chartData, this.chartOptions)
   },
 
   methods: {
@@ -267,6 +298,7 @@ const App = Vue.createApp({
             stage });
 
         savings += interest + contribution
+        if (savings < 0) savings = 0
       }
 
       this.calculations = newResults    
