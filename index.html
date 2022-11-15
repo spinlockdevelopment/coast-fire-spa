@@ -1,317 +1,360 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Coast To Retirement Calculator</title>
 
-<!-- CSS / Script Libraries -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src='https://unpkg.com/vue@next'></script>
+  <!-- CSS / Script Libraries -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"
+    integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src='https://unpkg.com/vue@next'></script>
 
 </head>
+
 <body class="container mt-4">
 
-<!-- Application HTML Vue Template -->
+  <!-- Application HTML Vue Template -->
 
-<div id="app">
-  <div class="container mt-4 mb-4">
-    <h1 class="">{{appTitle}}</h1>
-    <hr>
-    <calc-num v-model.number="params.currentIncome" type="dollar">Net Income</calc-num>
-    <calc-num v-model.number="params.currentSavings" type="dollar">Annual Savings</calc-num>
-    <calc-num v-model.number="params.currentWorth" type="dollar">Starting Net Worth</calc-num>
-    <calc-num v-model.number="params.currentAge" type="int">Current Age</calc-num>
-    <hr>
-    <calc-num v-model.number="params.coastAge" type="int" readonly>Coast Age</calc-num>
-    <calc-num v-model.number="params.retireAge" type="int">Retirement Age</calc-num>
-    <calc-num v-model.number="params.costOfLiving" type="dollar" readonly>Cost of Living</calc-num>
-    <calc-num v-model.number="params.retireWorth" type="dollar" readonly>Retirement Needed</calc-num>
-    <hr>
-    <calc-num v-model.number="params.returnOnInvestment" type="percent">Average Returns</calc-num>
-    <calc-num v-model.number="params.rateOfInflation" type="percent">Annual Inflation</calc-num>
-    <hr>
-  </div>
-
-  <div id="results">
-  <ul class="nav nav-tabs nav-fill" id="myTab" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tab-pane" type="button" role="tab" aria-controls="chart-tab-pane" aria-selected="true">Chart</button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="table-tab" data-bs-toggle="tab" data-bs-target="#table-tab-pane" type="button" role="tab" aria-controls="table-tab-pane" aria-selected="false">Table</button>
-    </li>
-  </ul>
-  <div class="tab-content " id="myTabContent">
-
-    <div class="tab-pane fade show active" id="chart-tab-pane" role="tabpanel" aria-labelledby="chart-tab" tabindex="0">
-      <canvas id="lineChart" width="400" height="300"></canvas>
+  <div id="app">
+    <div class="container mt-4 mb-4">
+      <h1 class="">{{appTitle}}</h1>
+      <hr>
+      <calc-num v-model.number="params.currentIncome" type="dollar">Net Income</calc-num>
+      <calc-num v-model.number="params.currentSavings" type="dollar">Annual Retirement Savings</calc-num>
+      <calc-num v-model.number="params.currentWorth" type="dollar">Starting Net Worth</calc-num>
+      <calc-num v-model.number="params.currentAge" type="int">Starting Age</calc-num>
+      <calc-num v-model.number="params.retireAge" type="int">Retirement Age</calc-num>
+      <hr>
+      <calc-num v-model.number="params.costOfLiving" type="dollar" readonly>Est. Cost of Living</calc-num>
+      <calc-num v-model.number="params.retireWorth" type="dollar" readonly>Retirement Needed</calc-num>
+      <calc-num v-model.number="params.coastAge" type="int" readonly>Coasting Age</calc-num>
+      <hr>
+      <calc-num v-model.number="params.returnOnInvestment" type="percent">Annual Return</calc-num>
+      <calc-num v-model.number="params.rateOfInflation" type="percent">Annual Inflation</calc-num>
+      <hr>
     </div>
 
-    <div class="tab-pane fade" id="table-tab-pane" role="tabpanel" aria-labelledby="table-tab" tabindex="0">
-      <table class="table table-striped table-sm text-center mt-4">
-        <thead>
-          <tr>
-            <th scope="col">Age</th>
-            <th scope="col">Savings</th>
-            <th scope="col">Earned Interest</th>
-            <th scope="col">Contribution</th>
-          </tr>
-        </thead>
-        <tbody style="font-family: 'Courier New', Courier, monospace; font-size:110%">
-          <tr v-for="yr in calculations" :class="[tableColor(yr)]">
-            <th scope="row">{{yr.age}}</th>
-            <td>{{printDollar(yr.savings, 100)}}</td>
-            <td>{{printDollar(yr.interest, 100)}}</td>
-            <td>{{printDollar(yr.contribution)}}</td>
-          </tr>
-          </tbody>
-        </table>
+    <div id="results">
+      <ul class="nav nav-tabs nav-fill" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tab-pane"
+            type="button" role="tab" aria-controls="chart-tab-pane" aria-selected="true">Chart</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="table-tab" data-bs-toggle="tab" data-bs-target="#table-tab-pane" type="button"
+            role="tab" aria-controls="table-tab-pane" aria-selected="false">Table</button>
+        </li>
+      </ul>
+      <div class="tab-content " id="myTabContent">
+
+        <div class="tab-pane fade show active" id="chart-tab-pane" role="tabpanel" aria-labelledby="chart-tab"
+          tabindex="0">
+          <canvas id="lineChart" width="400" height="300"></canvas>
+        </div>
+
+        <div class="tab-pane fade" id="table-tab-pane" role="tabpanel" aria-labelledby="table-tab" tabindex="0">
+          <table class="table table-striped table-sm text-center mt-4">
+            <thead>
+              <tr>
+                <th scope="col">Age</th>
+                <th scope="col">Total Savings</th>
+                <th scope="col">Return on Savings</th>
+                <th scope="col">Addition / Drawdown</th>
+              </tr>
+            </thead>
+            <tbody style="font-family: 'Courier New', Courier, monospace; font-size:110%">
+              <tr v-for="yr in calculations" :class="[tableColor(yr)]">
+                <th scope="row">{{yr.age}}</th>
+                <td>{{printDollar(yr.savings, 100)}}</td>
+                <td>{{printDollar(yr.interest, 100)}}</td>
+                <td>{{printDollar(yr.contribution)}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
-</div>    
-</div>
 
-<!-- Application Code -->
-<script>
+  <!-- Application Code -->
+  <script>
 
-// This all needs to live outside the Vue app for some reason
-// Dies in a stack overflow of recursion in .toRaw() Vue function
-class ChartJs {
-  static _chart = null
-
-// .first-color  { background: #00204a; }	rgba(0,32,74,0.5)
-// .second-color { background: #005792; } rgba(0,87,146,0.5)
-// .third-color  { background: #00bbf0; } rgba(0,187,240,0.5)
-// .fourth-color { background: #fdb44b; }
-
-  static data = {
-    labels: [0,1000000],
-    datasets: [{
-      label: 'Working',
-      data: [],
-      fill: true,
-      borderColor: 'rgba(0,32,74,1)',
-      backgroundColor: 'rgba(0,32,74,0.5)',
-      pointRadius: 2,
-      pointHoverRadius: 5,
-      segment: {
-        borderColor: ctx => {
-          switch (ctx.p1.raw.stage) {
-            case 1: return 'rgba(0,32,74,1)'
-            case 2: return 'rgba(0,87,146,1)'
-            default : return 'rgba(0,187,240,1)'
-          }
-        },
-        backgroundColor: ctx => {
-          switch (ctx.p1.raw.stage) {
-            case 1: return 'rgba(0,32,74,0.5)'
-            case 2: return 'rgba(0,87,146,0.5)'
-            default : return 'rgba(0,187,240,0.5)'
-          }
-        }
-      }
-      },
-      {
-      label: 'Coasting',
-      borderColor: 'rgba(0,87,146,1)',
-      backgroundColor: 'rgba(0,87,146,0.5)'
-      },
-      {
-      label: 'Retired',
-      borderColor: 'rgba(0,187,240,1)',
-      backgroundColor: 'rgba(0,187,240,0.5)'
-      }
-    ]
-  };
-
-  static options = {
-    title: {
-      display: true,
-      text: 'Total Savings'
-    },
-    elements: {
-      point: {
-        radius: 1
-      }
-    },
-    animation: {
-        duration: 600,
-    },
-    parsing: {
-      yAxisKey: 'savings',
-      xAxisKey: 'age'
-    }
-  };
-
-  static Init(elemId) {
-
-    const ctx = document.getElementById(elemId).getContext('2d')
-
-    this._chart = new Chart(ctx, {
-      type: 'line',
-      data: this.data,
-      options: this.options
-      })
-  }
-
-  static Update(labels, data) {
-    if (this._chart) {
-      this._chart.data.labels = labels
-      
-      // mutiple data arguments
-      //console.assert(this._chart.data.datasets.length === arguments.length - 1)
-      
-      for(let i = 1; i < arguments.length; i++) {
-        this._chart.data.datasets[i-1].data = arguments[i]
-      }
-
-      this._chart.update()
-    }
-  }
-}
-
-const App = Vue.createApp({
-  data() {
-    return {
-      appTitle: 'Coasting to Retirement',
-      params: {
-        currentIncome: 71000,
-        currentSavings: 16000,
-        currentWorth: 65000,
-        currentAge: 25,
-        retireAge: 55,
-
-        interestPercent : 0,
-        costOfLiving: 0,
-        retireWorth: 0,
-        coastAge: 0,
-
-        returnOnInvestment: 9.0,
-        rateOfInflation: 4.0,
-      },
-
-      dollarFmt: null,
-      printDollar: null,
-      
-      calculations: []
-    }
-  },
-
-  mounted() {
-    this.updateCalculations()
-    ChartJs.Init('lineChart')
-  },
-
-  watch: {
-    params: {
-      handler(newParams, oldParams) {
-        this.updateCalculations()
-      },
-      deep: true,
-    },
-
-    calculations(newCalc, oldCalc) {
-
-      const labels = newCalc.filter((e, i) => i % 2 === 1).map(x => x.age)
-      const evens = newCalc.filter((e, i) => i % 2 === 1).map(x => x)
-
-      ChartJs.Update(labels, evens)
-    }
-  },
- 
-  created() {
-
-    this.dollarFmt =
+    class Utils {
+      static _dollarFmt =
         new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        currencySign: 'accounting',
-        maximumFractionDigits: 0
+          style: 'currency',
+          currency: 'USD',
+          currencySign: 'accounting',
+          maximumFractionDigits: 0
         });
 
-    this.printDollar = function (num, rnd) {
-      if (num === 0) return '-'
-      if (rnd) { 
-        num = Math.floor(num / rnd) * rnd
-      }
+      static printDollar(num, rnd) {
+        if (num === 0) return '-'
+        if (rnd) {
+          num = Math.floor(num / rnd) * rnd
+        }
 
-      return this.dollarFmt.format(num)
+        return this._dollarFmt.format(num)
+      }
     }
 
-  },
+    // This all needs to live outside the Vue app for some reason
+    // Dies in a stack overflow of recursion in .toRaw() Vue function
+    class CoastChart {
+      static _chart = null
 
-  methods: {
+      // .first-color  { background: #00204a; }	rgba(0,32,74,0.5)
+      // .second-color { background: #005792; } rgba(0,87,146,0.5)
+      // .third-color  { background: #00bbf0; } rgba(0,187,240,0.5)
+      // .fourth-color { background: #fdb44b; }
 
-    tableColor(yr) {
-      if (yr.stage === 2)
-        return 'table-primary'
-      else if(yr.stage == 3)
-        return 'table-success'
-    }, 
+      static data = {
+        labels: [0, 1000000],
+        datasets: [{
+          label: 'Working',
+          data: [],
+          fill: true,
+          borderColor: 'rgba(0,32,74,1)',
+          backgroundColor: 'rgba(0,32,74,0.5)',
+          pointRadius: 2,
+          pointHoverRadius: 5,
+          segment: {
+            borderColor: ctx => {
+              switch (ctx.p1.raw.stage) {
+                case 1: return 'rgba(0,32,74,1)'
+                case 2: return 'rgba(0,87,146,1)'
+                default: return 'rgba(0,187,240,1)'
+              }
+            },
+            backgroundColor: ctx => {
+              switch (ctx.p1.raw.stage) {
+                case 1: return 'rgba(0,32,74,0.5)'
+                case 2: return 'rgba(0,87,146,0.5)'
+                default: return 'rgba(0,187,240,0.5)'
+              }
+            }
+          }
+        },
+        {
+          label: 'Coasting',
+          borderColor: 'rgba(0,87,146,1)',
+          backgroundColor: 'rgba(0,87,146,0.5)'
+        },
+        {
+          label: 'Retired',
+          borderColor: 'rgba(0,187,240,1)',
+          backgroundColor: 'rgba(0,187,240,0.5)'
+        }
+        ]
+      };
 
-    updateCalculations() {
-
-      function canCoastToRetire(age, savings) {
-        for(age; age < params.retireAge; age++) {         
-          savings *= (1 + params.interestRate)
-          if (savings > params.retireWorth) {
-            return true
+      static options = {
+        title: {
+          display: true,
+          text: 'Total Savings'
+        },
+        elements: {
+          point: {
+            radius: 1
+          }
+        },
+        animation: {
+          duration: 600,
+        },
+        parsing: {
+          yAxisKey: 'savings',
+          xAxisKey: 'age'
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              title: function (ctx) {
+                const data = ctx[0].element.raw
+                if (data.stage == 1) {
+                  return 'Working @ ' + data.age
+                } else if (data.stage == 2) {
+                  return 'Coasting @ ' + data.age
+                } else {
+                  return 'Retired @ ' + data.age
+                }
+              },
+              label: function (ctx) {
+                const data = ctx.element.raw
+                return 'Savings: ' + Utils.printDollar(data.savings, 100);
+              },
+              footer: function(ctx) {
+                const data = ctx[0].element.raw
+                let footer = 'Annual Return: ' + Utils.printDollar(data.interest, 100) + '\n'
+                if (data.contribution < 0) {
+                  footer += 'Drowndown: ' + Utils.printDollar(-(data.contribution), 100)
+                } else {
+                  footer += 'Addition: ' + Utils.printDollar(data.contribution, 100)
+                }
+                return footer
+              }
+            }
           }
         }
-        return false
+      };
+
+      static Init(elemId) {
+
+        const ctx = document.getElementById(elemId).getContext('2d')
+
+        this._chart = new Chart(ctx, {
+          type: 'line',
+          data: this.data,
+          options: this.options
+        })
       }
 
-      const params = this.params
-      params.interestRate = (params.returnOnInvestment - params.rateOfInflation) / 100
-      params.costOfLiving = Math.floor(params.currentIncome - params.currentSavings)
-      params.retireWorth = Math.floor(params.costOfLiving / params.interestRate)
+      static Update(labels, data) {
+        if (this._chart) {
+          this._chart.data.labels = labels
+          this._chart.data.datasets[0].data = data
+          this._chart.update()
+        }
+      }
 
-      let savings = params.currentWorth
-      let stage = 1
-      let newResults = []
+      static getTooltip(data) {
+        let label = ''
 
-      for(let age = params.currentAge; age < 100; age++) {
-        
-        const interest = savings * params.interestRate
-        let contribution = 0
+        label += '\n\n'
+        label += 'Savings: ' + Utils.printDollar(data.savings, 100);
 
-        if (stage === 1) {
-          if (canCoastToRetire(age, savings)) {
-            params.coastAge = age
-            stage = 2
-          } else {
-            contribution = params.currentSavings
+        return label;
+      }
+    }
+
+    const App = Vue.createApp({
+      data() {
+        return {
+          appTitle: 'Coasting to Retirement',
+          params: {
+            currentIncome: 71000,
+            currentSavings: 16000,
+            currentWorth: 65000,
+            currentAge: 25,
+            retireAge: 55,
+
+            interestPercent: 0,
+            costOfLiving: 0,
+            retireWorth: 0,
+            coastAge: 0,
+
+            returnOnInvestment: 9.0,
+            rateOfInflation: 4.0,
+          },
+
+          calculations: []
+        }
+      },
+
+      mounted() {
+        this.updateCalculations()
+        CoastChart.Init('lineChart')
+      },
+
+      watch: {
+        params: {
+          handler(newParams, oldParams) {
+            this.updateCalculations()
+          },
+          deep: true,
+        },
+
+        calculations(newCalc, oldCalc) {
+
+          const labels = newCalc.filter((e, i) => i % 2 === 1).map(x => x.age)
+          const evens = newCalc.filter((e, i) => i % 2 === 1).map(x => x)
+
+          CoastChart.Update(labels, evens)
+        }
+      },
+
+      methods: {
+
+        printDollar(num, rnd) {
+          return Utils.printDollar(num, rnd)
+        },
+
+        tableColor(yr) {
+          if (yr.stage === 2)
+            return 'table-primary'
+          else if (yr.stage == 3)
+            return 'table-success'
+        },
+
+        updateCalculations() {
+
+          function canCoastToRetire(age, savings) {
+            for (age; age < params.retireAge; age++) {
+              savings *= (1 + params.interestRate)
+              if (savings > params.retireWorth) {
+                return true
+              }
+            }
+            return false
           }
+
+          const params = this.params
+          params.interestRate = (params.returnOnInvestment - params.rateOfInflation) / 100
+          params.costOfLiving = Math.floor(params.currentIncome - params.currentSavings)
+          params.retireWorth = Math.floor(params.costOfLiving / params.interestRate)
+
+          let savings = params.currentWorth
+          let stage = 1
+          let newResults = []
+
+          for (let age = params.currentAge; age < 100; age++) {
+
+            const interest = savings * params.interestRate
+            let contribution = 0
+
+            if (stage === 1) {
+              if (canCoastToRetire(age, savings)) {
+                params.coastAge = age
+                stage = 2
+              } else {
+                contribution = params.currentSavings
+              }
+            }
+
+            if (age >= params.retireAge) {
+              stage = 3
+              contribution = -(params.costOfLiving)
+            }
+
+            newResults.push(
+              {
+                age,
+                savings,
+                interest,
+                contribution,
+                stage
+              });
+
+            savings += interest + contribution
+            if (savings < 0) savings = 0
+          }
+
+          this.calculations = newResults
         }
-        
-        if (age >= params.retireAge) {
-          stage = 3
-          contribution = -(params.costOfLiving)
-        }
+      },
+    })
 
-        newResults.push(
-          { age, 
-            savings, 
-            interest,
-            contribution,
-            stage });
-
-        savings += interest + contribution
-        if (savings < 0) savings = 0
-      }
-
-      this.calculations = newResults    
-    } 
-  },
-})
-
-const calcNum = {
-  props : ['modelValue', 'type', 'readonly'],
-  template: 
-  '<div class="row mt-2"> \
+    const calcNum = {
+      props: ['modelValue', 'type', 'readonly'],
+      template:
+        '<div class="row mt-2"> \
     <label class="col col-form-label text-end"> \
       <slot></slot> \
     </label> \
@@ -323,35 +366,37 @@ const calcNum = {
     </div> \
   </div>',
 
-  computed: {
-    isDisabled() {
-      return { disabled: this.readonly }
-    },
-    isPercent() {
-      return this.type == "percent"
-    },
-    isDollar() {
-      return this.type == "dollar"
-    },
-    isInt() {
-      return this.type == "int"
-    },
-  },
+      computed: {
+        isDisabled() {
+          return { disabled: this.readonly }
+        },
+        isPercent() {
+          return this.type == "percent"
+        },
+        isDollar() {
+          return this.type == "dollar"
+        },
+        isInt() {
+          return this.type == "int"
+        },
+      },
 
-  methods: {
-  updateModelValue(e) {
-    //if (validate a number) {
-      this.$emit('update:modelValue', e.target.value)
-    //}
-  }},
-}
+      methods: {
+        updateModelValue(e) {
+          //if (validate a number) {
+          this.$emit('update:modelValue', e.target.value)
+          //}
+        }
+      },
+    }
 
-App.component('calc-num', calcNum)
-App.mount('#app')
+    App.component('calc-num', calcNum)
+    App.mount('#app')
 
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+    crossorigin="anonymous"></script>
 </body>
+
 </html>
-
-
